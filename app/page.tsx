@@ -10,9 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Checkbox } from '@/components/ui/checkbox'
 import { X, Search, Filter, RefreshCw, AlertCircle } from 'lucide-react'
-
-// Replace CONFIG with direct environment check
-const isProduction = process.env.NODE_ENV === 'production'
+import { CONFIG } from '@/config/portfolio'
 
 // Fixed interfaces to match Hashnode API
 interface HashnodeArticle {
@@ -295,7 +293,7 @@ export default function ArticlesPage() {
                 </>
               )}
             </div>
-            {!isProduction && (
+            {!CONFIG.isProduction && (
               <div className="text-xs text-muted-foreground mt-1">
                 {lastSync && `Last synced: ${formatTime(lastSync)}`}
                 {nextRefresh > 0 && ` • Next refresh: ${Math.floor(nextRefresh / 60)}:${(nextRefresh % 60).toString().padStart(2, '0')}`}
@@ -303,7 +301,7 @@ export default function ArticlesPage() {
             )}
             
             {/* Debug info for series */}
-            {!isProduction && (
+            {!CONFIG.isProduction && (
               <div className="text-xs text-blue-600 mt-2 p-2 bg-blue-50 rounded border">
                 <div className="font-medium">📚 FRESH Series Debug Info ({series.length} found):</div>
                 {series.length === 0 ? (
@@ -319,7 +317,7 @@ export default function ArticlesPage() {
             )}
           </div>
           
-          {!isProduction && (
+          {!CONFIG.isProduction && (
             <div className="flex gap-2">
               <Button
                 onClick={handleManualRefresh}
@@ -347,7 +345,7 @@ export default function ArticlesPage() {
         <Tabs defaultValue="articles" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="articles">Articles ({filteredArticles.length})</TabsTrigger>
-            {!isProduction && (
+            {!CONFIG.isProduction && (
               <TabsTrigger value="api">API Response</TabsTrigger>
             )}
           </TabsList>
@@ -583,7 +581,7 @@ export default function ArticlesPage() {
             </div>
           </TabsContent>
 
-          {!isProduction && (
+          {!CONFIG.isProduction && (
             <TabsContent value="api" className="space-y-4">
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
