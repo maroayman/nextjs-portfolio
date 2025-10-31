@@ -93,12 +93,25 @@ const GET_USER_SERIES = `
   }
 `
 
+import { getCachedData, setCachedData, cacheKeys, CACHE_TTL, clearHashnodeCache } from "./redis"
+
 export async function fetchHashnodeArticles(
   username: string,
   page = 1,
   pageSize = 20,
 ): Promise<{ articles: HashnodeArticle[]; totalCount: number }> {
   try {
+    const cacheKey = cacheKeys.articles(username, page, pageSize)
+    const cachedData = await getCachedData<{
+      articles: HashnodeArticle[]
+      totalCount: number
+    }>(cacheKey)
+
+    if (cachedData) {
+      console.log("[v0] Returning cached articles for", username)
+      return cachedData
+    }
+
     const limitedPageSize = Math.min(pageSize, 20)
 
     const response = await fetch(HASHNODE_API_URL, {
@@ -137,10 +150,14 @@ export async function fetchHashnodeArticles(
       url: node.url,
     }))
 
-    return {
+    const result = {
       articles,
       totalCount: posts.totalDocuments,
     }
+
+    await setCachedData(cacheKey, result, CACHE_TTL.ARTICLES)
+
+    return result
   } catch (error) {
     console.error("Error fetching Hashnode articles:", error)
     return { articles: [], totalCount: 0 }
@@ -149,6 +166,14 @@ export async function fetchHashnodeArticles(
 
 export async function fetchHashnodeSeries(username: string): Promise<HashnodeSeries[]> {
   try {
+    const cacheKey = cacheKeys.series(username)
+    const cachedData = await getCachedData<HashnodeSeries[]>(cacheKey)
+
+    if (cachedData) {
+      console.log("[v0] Returning cached series for", username)
+      return cachedData
+    }
+
     const response = await fetch(HASHNODE_API_URL, {
       method: "POST",
       headers: {
@@ -177,12 +202,16 @@ export async function fetchHashnodeSeries(username: string): Promise<HashnodeSer
       return []
     }
 
-    return seriesList.edges.map((edge: any) => ({
+    const result = seriesList.edges.map((edge: any) => ({
       name: edge.node.name,
       slug: edge.node.slug,
       description: edge.node.description?.text,
       posts: edge.node.posts,
     }))
+
+    await setCachedData(cacheKey, result, CACHE_TTL.SERIES)
+
+    return result
   } catch (error) {
     console.error("Error fetching Hashnode series:", error)
     return []
@@ -202,3 +231,5 @@ export function formatDate(dateString: string): string {
 export function formatReadTime(minutes: number): string {
   return `${minutes} min read`
 }
+
+export { clearHashnodeCache }

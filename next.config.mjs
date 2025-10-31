@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    reactCompiler: true,
+  },
+
   // Build configuration
   eslint: {
     ignoreDuringBuilds: true,
