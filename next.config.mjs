@@ -1,17 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    reactCompiler: true,
-  },
+  reactCompiler: true,
 
-  // Build configuration
   eslint: {
     ignoreDuringBuilds: true,
   },
+
   typescript: {
     ignoreBuildErrors: true,
   },
-  
+
   // Image optimization
   images: {
     remotePatterns: [
@@ -28,6 +26,7 @@ const nextConfig = {
         pathname: '/**',
       }
     ],
+    unoptimized: true,
   },
 }
 
