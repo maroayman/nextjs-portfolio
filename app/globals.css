@@ -60,12 +60,26 @@
     @apply bg-background text-foreground;
     /* Monospace font for terminal aesthetic */
     font-family: "Courier New", "Monaco", "Menlo", monospace;
+    /* Prevent horizontal scroll on mobile */
+    overflow-x: hidden;
+  }
+
+  /* Ensure html doesn't allow horizontal scroll */
+  html {
+    overflow-x: hidden;
   }
 }
 
 /* Terminal-style scrollbar */
 ::-webkit-scrollbar {
-  width: 12px;
+  width: 8px;
+  /* Thinner scrollbar on mobile */
+}
+
+@media (min-width: 640px) {
+  ::-webkit-scrollbar {
+    width: 12px;
+  }
 }
 
 ::-webkit-scrollbar-track {
@@ -96,4 +110,13 @@
   content: "█";
   animation: blink 1s infinite;
   color: hsl(var(--secondary));
+}
+
+/* Add touch-friendly tap targets for mobile */
+@media (max-width: 640px) {
+  button,
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }

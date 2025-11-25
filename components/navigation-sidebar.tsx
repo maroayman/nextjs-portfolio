@@ -56,7 +56,7 @@ export function NavigationSidebar() {
       <Button
         variant="default"
         size="icon"
-        className="fixed top-6 right-6 z-50 bg-primary hover:bg-primary/90 shadow-lg font-mono"
+        className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 bg-primary hover:bg-primary/90 shadow-lg font-mono h-10 w-10 sm:h-10 sm:w-10"
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -66,24 +66,28 @@ export function NavigationSidebar() {
       {isOpen && <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setIsOpen(false)} />}
 
       <div
-        className={`fixed right-0 top-0 h-full w-80 bg-background border-l-2 border-primary z-50 transform transition-transform duration-300 ${
+        className={`fixed right-0 top-0 h-full w-full sm:w-80 bg-background border-l-2 border-primary z-50 transform transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="p-6 font-mono">
-          <div className="mb-8 pt-4">
-            <div className="text-primary text-sm">
-              <pre>{`
+        <div className="p-4 sm:p-6 font-mono h-full overflow-y-auto">
+          <div className="mb-6 sm:mb-8 pt-12 sm:pt-4">
+            <div className="text-primary text-[10px] sm:text-sm">
+              <pre className="hidden sm:block">{`
 ┌─────────────────────────────────┐
 │ NAVIGATION MENU                 │
 │ User: marwan@portfolio:~$       │
 └─────────────────────────────────┘
               `}</pre>
+              <div className="sm:hidden text-center border border-primary p-2 rounded">
+                <p className="font-bold">NAVIGATION MENU</p>
+                <p className="text-xs text-muted-foreground">marwan@portfolio:~$</p>
+              </div>
             </div>
           </div>
 
           <div className="mb-6">
-            <div className="text-sm mb-2">
+            <div className="text-xs sm:text-sm mb-2">
               <span className="text-primary">$</span> toggle_theme
             </div>
             <Button
@@ -98,16 +102,16 @@ export function NavigationSidebar() {
           </div>
 
           <div className="mb-6">
-            <div className="text-sm mb-2">
+            <div className="text-xs sm:text-sm mb-2">
               <span className="text-primary">$</span> cd pages/
             </div>
-            <nav className="space-y-1 text-xs">
+            <nav className="space-y-2 sm:space-y-1 text-xs">
               {pageItems.map((item) => (
                 <div key={item.href} className="flex items-center">
                   <span className="text-muted-foreground mr-2">{pathname === item.href ? ">" : " "}</span>
                   <Link
                     href={item.href}
-                    className={`text-left hover:text-accent transition-colors ${
+                    className={`text-left hover:text-accent transition-colors py-1 ${
                       pathname === item.href ? "text-primary" : "text-muted-foreground"
                     }`}
                     onClick={() => setIsOpen(false)}
@@ -121,15 +125,15 @@ export function NavigationSidebar() {
 
           {pathname === "/" && (
             <div className="mb-6">
-              <div className="text-sm mb-2">
+              <div className="text-xs sm:text-sm mb-2">
                 <span className="text-primary">$</span> ls -la sections/
               </div>
-              <nav className="space-y-1 text-xs">
+              <nav className="space-y-2 sm:space-y-1 text-xs">
                 {navigationItems.map((item) => (
                   <div key={item.id} className="flex items-center">
                     <span className="text-muted-foreground mr-2">{activeSection === item.id ? ">" : " "}</span>
                     <button
-                      className={`text-left hover:text-accent transition-colors ${
+                      className={`text-left hover:text-accent transition-colors py-1 ${
                         activeSection === item.id ? "text-primary" : "text-muted-foreground"
                       }`}
                       onClick={() => scrollToSection(item.id)}

@@ -6,22 +6,6 @@ export function ProfessionalDevelopment() {
   const workExperience = [
     {
       id: 1,
-      company: "Ghaymah Cloud Solutions",
-      position: "DevOps Trainee",
-      startDate: "September 2025",
-      endDate: "October 2025",
-      location: "Remote",
-      description: "Working on cloud automation, CI/CD pipelines, and infrastructure provisioning.",
-      highlights: [
-        "Working on cloud automation, CI/CD pipelines, and infrastructure provisioning",
-        "Gaining hands-on experience with Ghaymah Cloud Solutions, Docker, and APIs",
-        "Assisting in containerized application deployments and monitoring setup",
-      ],
-      technologies: ["Docker", "CI/CD", "Cloud Automation", "API", "Cloud Deployment"],
-      url: "https://ghaymah.systems",
-    },
-    {
-      id: 2,
       company: "Digital Egypt Pioneers Initiative",
       position: "DevOps Trainee",
       startDate: "Jun 2025",
@@ -35,6 +19,22 @@ export function ProfessionalDevelopment() {
       ],
       technologies: ["Linux", "Kubernetes", "Terraform", "Ansible", "Docker", "Jenkins"],
       url: "https://depi.gov.eg",
+    },
+    {
+      id: 2,
+      company: "Ghaymah Cloud Solutions",
+      position: "DevOps Intern",
+      startDate: "September 2025",
+      endDate: "October 2025",
+      location: "Remote, Saudi Arabia",
+      description: "Working on cloud automation, CI/CD pipelines, and infrastructure provisioning.",
+      highlights: [
+        "Working on cloud automation, CI/CD pipelines, and infrastructure provisioning",
+        "Gaining hands-on experience with Ghaymah Cloud Solutions, Docker, and APIs",
+        "Assisting in containerized application deployments and monitoring setup",
+      ],
+      technologies: ["Docker", "CI/CD", "Cloud Automation", "API", "Cloud Deployment"],
+      url: "https://ghaymah.systems",
     },
   ]
 

@@ -1,10 +1,18 @@
 import { Redis } from "@upstash/redis"
 
 // Initialize Redis client using environment variables
-const redis = new Redis({
-  url: process.env.KV_REST_API_URL!,
-  token: process.env.KV_REST_API_TOKEN!,
-})
+let redis: Redis | null = null
+
+try {
+  if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+    redis = new Redis({
+      url: process.env.KV_REST_API_URL,
+      token: process.env.KV_REST_API_TOKEN,
+    })
+  }
+} catch (error) {
+  console.error("[v0] Failed to initialize Redis client:", error)
+}
 
 // Cache configuration
 const CACHE_TTL = {
@@ -22,36 +30,44 @@ export const cacheKeys = {
 
 // Get cached data
 export async function getCachedData<T>(key: string): Promise<T | null> {
+  if (!redis) {
+    return null
+  }
   try {
     const cached = await redis.get(key)
     return cached as T | null
   } catch (error) {
-    console.error("[v0] Redis get error:", error)
+    // Silently fail - caching is optional
     return null
   }
 }
 
 // Set cached data
 export async function setCachedData<T>(key: string, data: T, ttl: number = CACHE_TTL.ARTICLES): Promise<boolean> {
+  if (!redis) {
+    return false
+  }
   try {
     await redis.setex(key, ttl, JSON.stringify(data))
     return true
   } catch (error) {
-    console.error("[v0] Redis set error:", error)
+    // Silently fail - caching is optional
     return false
   }
 }
 
 // Invalidate cache
 export async function invalidateCache(pattern: string): Promise<void> {
+  if (!redis) {
+    return
+  }
   try {
-    // Get all keys matching pattern
     const keys = await redis.keys(pattern)
     if (keys.length > 0) {
       await redis.del(...keys)
     }
   } catch (error) {
-    console.error("[v0] Redis invalidate error:", error)
+    // Silently fail
   }
 }
 
@@ -60,7 +76,7 @@ export async function clearHashnodeCache(username: string): Promise<void> {
   try {
     await invalidateCache(`hashnode:*${username}*`)
   } catch (error) {
-    console.error("[v0] Clear Hashnode cache error:", error)
+    // Silently fail
   }
 }
 

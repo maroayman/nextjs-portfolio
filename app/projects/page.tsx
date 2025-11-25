@@ -8,6 +8,27 @@ import Link from "next/link"
 
 const personalProjects = [
   {
+    title: "AWS Auto Scaling Web Application",
+    description:
+      "A highly available, scalable web application infrastructure on AWS with ALB, Auto Scaling Group, and secure multi-AZ network architecture",
+    technologies: ["Terraform", "AWS", "ALB", "Auto Scaling", "VPC", "NAT Gateway", "S3", "IAM", "Bastion Host"],
+    features: [
+      "Multi-AZ deployment across us-east-1a and us-east-1b for high availability",
+      "Application Load Balancer distributes traffic across instances",
+      "Auto Scaling Group automatically scales between 1-3 instances based on demand",
+      "Layered security with separate security groups and private subnets",
+      "Secure bastion host for SSH access to private instances",
+      "NAT Gateway for private subnet internet access",
+      "S3 integration for backup and logging",
+      "IAM roles and policies for secure access management",
+    ],
+    github: "https://github.com/maroayman/depi-project-5",
+    demo: null,
+    status: "Completed",
+    duration: "2 weeks",
+    category: "Cloud Infrastructure",
+  },
+  {
     title: "Terraform AWS EC2 Infrastructure as Code",
     description:
       "A production-ready Terraform project that automates the deployment of secure EC2 instances on AWS with real-time monitoring dashboard",
