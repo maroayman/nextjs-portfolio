@@ -1,17 +1,27 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import Link from "next/link"
-import { formatDate, formatReadTime } from "@/lib/hashnode"
-import { currentConfig } from "@/config/portfolio"
-import { ExternalLink, Calendar, Clock, Search, BookOpen, Hash, Loader2, RefreshCw, Code, Database, Filter, X, ChevronDown } from "lucide-react"
+import { currentConfig as portfolioConfig, formatDate, formatReadTime } from "@/config/portfolio"
+import {
+  ExternalLink,
+  Calendar,
+  Clock,
+  Search,
+  BookOpen,
+  Loader2,
+  RefreshCw,
+  Code,
+  Database,
+  X,
+  Tag,
+} from "lucide-react"
+import Image from "next/image"
 
 interface Article {
   id: string
@@ -25,15 +35,18 @@ interface Article {
   series_name: string | null
   series_slug: string | null
   tags: Array<{ name: string; slug: string }>
+  content: string | null // Added for potential future use or API response
 }
 
 interface Series {
-  id: number
+  id: number | string // Allow string for generated IDs
   name: string
   slug: string
   description: string | null
   total_posts: number
 }
+
+// Removed PaginationInfo interface as pagination is no longer used
 
 export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([])
@@ -45,47 +58,49 @@ export default function ArticlesPage() {
   const [tagSearchTerm, setTagSearchTerm] = useState("")
   const [selectedSeries, setSelectedSeries] = useState<string | null>(null)
   const [lastSync, setLastSync] = useState<string | null>(null)
-  
+
+  // Removed pagination state
+
   // API Response state
   const [apiResponse, setApiResponse] = useState<any>(null)
   const [apiLoading, setApiLoading] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
-  
+
   // Auto-refresh status
   const [nextRefreshTime, setNextRefreshTime] = useState<Date | null>(null)
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true)
   const [isClient, setIsClient] = useState(false)
-  
+
   // Get configuration settings
-  const showDevControls = currentConfig.showDebugControls
-  const refreshInterval = currentConfig.refreshIntervalMinutes * 60 * 1000
-  const showRefreshTimer = currentConfig.showRefreshTimer
-  const showAutoRefreshToggle = currentConfig.showAutoRefreshToggle
+  const showDevControls = portfolioConfig.showDebugControls
+  const refreshInterval = portfolioConfig.refreshIntervalMinutes * 60 * 1000
+  const showRefreshTimer = portfolioConfig.showRefreshTimer
+  const showAutoRefreshToggle = portfolioConfig.showAutoRefreshToggle
 
   // Handle client-side mounting
   useEffect(() => {
     setIsClient(true)
   }, [])
 
-  // Function to load articles data
-  // This automatically fetches both articles AND series from Hashnode
-  // New series you create will appear automatically within 10 minutes
   const loadArticlesData = async () => {
     setLoading(true)
     try {
-      // Always fetch fresh data from Hashnode API (includes series)
-      const hashnodeResponse = await fetch(`/api/hashnode?username=${currentConfig.hashnodeUsername}&includeSeries=${currentConfig.includeSeriesData}&pageSize=${currentConfig.maxArticlesPerPage}`, {
-        // Add cache busting to ensure fresh data
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      })
-      
+      // Fetch all articles from Hashnode API (large pageSize to get all)
+      const hashnodeResponse = await fetch(
+        `/api/hashnode?username=${portfolioConfig.hashnodeUsername}&includeSeries=${portfolioConfig.includeSeriesData}&pageSize=100`,
+        {
+          // Add cache busting to ensure fresh data
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+        },
+      )
+
       if (hashnodeResponse.ok) {
         const hashnodeData = await hashnodeResponse.json()
         console.log("Hashnode API response:", hashnodeData)
-        
+
         if (hashnodeData.success && hashnodeData.data) {
           // Transform Hashnode data to match our Article interface
           const transformedArticles = hashnodeData.data.articles.map((article: any) => ({
@@ -99,51 +114,43 @@ export default function ArticlesPage() {
             url: article.url,
             series_name: article.series?.name,
             series_slug: article.series?.slug,
-            tags: article.tags || []
+            tags: article.tags || [],
+            content: article.content, // Include content if available in API response
           }))
-          
+
           // Transform series data
           const transformedSeries = hashnodeData.data.series.map((s: any, index: number) => ({
             id: `series-${s.slug}-${index}`, // Use deterministic ID
             name: s.name,
             slug: s.slug,
             description: s.description,
-            total_posts: s.posts?.totalDocuments || 0
+            total_posts: s.posts?.totalDocuments || 0,
           }))
-          
+
           setArticles(transformedArticles)
           setSeries(transformedSeries)
           setLastSync(hashnodeData.metadata?.timestamp)
-          console.log(`✅ Loaded ${transformedArticles.length} articles from Hashnode (Total: ${hashnodeData.data.totalCount})`)
+          console.log(`✅ Loaded ${transformedArticles.length} articles from Hashnode`)
         }
       } else {
-        // Fallback to database API if available
-        try {
-          const [articlesResponse, seriesResponse] = await Promise.all([
-            fetch("/api/articles"), 
-            fetch("/api/series")
-          ])
-
-          if (articlesResponse.ok && seriesResponse.ok) {
-            const articlesData = await articlesResponse.json()
-            const seriesData = await seriesResponse.json()
-
-            setArticles(articlesData.articles || [])
-            setSeries(seriesData.series || [])
-            setLastSync(articlesData.lastSync)
-          } else {
-            console.error("❌ Failed to load data from both Hashnode API and database")
-          }
-        } catch (dbError) {
-          console.error("Database API not available:", dbError)
-        }
+        console.error("❌ Failed to fetch from Hashnode API")
+        // Fallback to database API is removed as we are directly fetching from Hashnode
+        setArticles([])
+        setSeries([])
       }
     } catch (error) {
-      console.error("Error loading data:", error)
+      console.error("❌ Error loading articles:", error)
+      setArticles([])
+      setSeries([])
     } finally {
       setLoading(false)
     }
   }
+
+  // Initial load of data
+  useEffect(() => {
+    loadArticlesData()
+  }, []) // Empty dependency array means this runs only once on mount
 
   // Auto-refresh articles periodically and on visibility change
   useEffect(() => {
@@ -151,26 +158,24 @@ export default function ArticlesPage() {
 
     // Function to handle visibility change
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === "visible") {
         console.log("🔄 Page became visible, refreshing articles...")
-        loadArticlesData()
+        loadArticlesData() // Refresh all articles on visibility
       }
     }
 
-    // Initial load
-    loadArticlesData()
-    setNextRefreshTime(new Date(Date.now() + refreshInterval))
-
     // Add visibility change listener
-    document.addEventListener('visibilitychange', handleVisibilityChange)
+    document.addEventListener("visibilitychange", handleVisibilityChange)
 
     // Set up automatic refresh (if enabled)
     let interval: NodeJS.Timeout | null = null
-    
+
     if (autoRefreshEnabled) {
       interval = setInterval(() => {
-        console.log(`⏰ Auto-refreshing articles from Hashnode every ${currentConfig.refreshIntervalMinutes} minutes...`)
-        loadArticlesData()
+        console.log(
+          `⏰ Auto-refreshing articles from Hashnode every ${portfolioConfig.refreshIntervalMinutes} minutes...`,
+        )
+        loadArticlesData() // Refresh all articles on interval
         setNextRefreshTime(new Date(Date.now() + refreshInterval)) // Reset timer
       }, refreshInterval)
     }
@@ -178,15 +183,15 @@ export default function ArticlesPage() {
     // Cleanup on component unmount
     return () => {
       if (interval) clearInterval(interval)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
     }
-  }, [autoRefreshEnabled, isClient])
+  }, [autoRefreshEnabled, isClient]) // Dependencies include autoRefreshEnabled and isClient
 
   const handleSync = async () => {
     setSyncing(true)
     try {
       console.log("🔄 Manual refresh: Fetching latest articles from Hashnode...")
-      await loadArticlesData()
+      await loadArticlesData() // Sync all articles
       console.log("✅ Manual refresh completed!")
     } catch (error) {
       console.error("❌ Error during manual refresh:", error)
@@ -200,63 +205,64 @@ export default function ArticlesPage() {
     setApiLoading(true)
     setApiError(null)
     try {
-      const response = await fetch(`/api/hashnode?username=${currentConfig.hashnodeUsername}&includeSeries=${currentConfig.includeSeriesData}&pageSize=${currentConfig.maxArticlesPerPage}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
+      // Use pageSize for API call, no specific page needed for raw response view
+      const response = await fetch(
+        `/api/hashnode?username=${portfolioConfig.hashnodeUsername}&includeSeries=${portfolioConfig.includeSeriesData}&pageSize=100`, // Fetch all
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
         },
-      })
-      
+      )
+
       const data = await response.json()
       setApiResponse(data)
-      
+
       if (!response.ok) {
-        setApiError(data.error || 'Failed to fetch from API')
+        setApiError(data.error || "Failed to fetch from API")
       } else {
         console.log(`📊 API Response: ${data.data?.articles?.length || 0} articles fetched`)
       }
     } catch (error) {
-      setApiError(error instanceof Error ? error.message : 'Unknown error occurred')
+      setApiError(error instanceof Error ? error.message : "Unknown error occurred")
     } finally {
       setApiLoading(false)
     }
   }
 
-  // Get all unique tags with counts
-  const allTags = Array.from(new Set(articles.flatMap((article) => article.tags.map((tag) => tag.name))))
-  const tagCounts = allTags.reduce((acc, tag) => {
-    acc[tag] = articles.filter(article => 
-      article.tags.some(articleTag => articleTag.name === tag)
-    ).length
-    return acc
-  }, {} as Record<string, number>)
+  // Get all unique tags from articles
+  const allTags = [...new Set(articles.flatMap((article) => article.tags.map((tag) => tag.name)))].sort()
+
+  // Get tag counts
+  const tagCounts = allTags.reduce(
+    (acc, tag) => {
+      acc[tag] = articles.filter((article) => article.tags.some((articleTag) => articleTag.name === tag)).length
+      return acc
+    },
+    {} as Record<string, number>,
+  )
 
   // Filter articles
   const filteredArticles = articles.filter((article) => {
     const matchesSearch =
       article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (article.brief && article.brief.toLowerCase().includes(searchTerm.toLowerCase()))
-    const matchesTags = selectedTags.length === 0 || selectedTags.some(selectedTag => 
-      article.tags.some((tag) => tag.name === selectedTag)
-    )
+    const matchesTags =
+      selectedTags.length === 0 ||
+      selectedTags.some((selectedTag) => article.tags.some((tag) => tag.name === selectedTag))
     const matchesSeries = !selectedSeries || article.series_name === selectedSeries
     return matchesSearch && matchesTags && matchesSeries
   })
 
   // Filter tags based on search term
-  const filteredTags = allTags.filter(tag => 
-    tag.toLowerCase().includes(tagSearchTerm.toLowerCase())
-  )
+  const filteredTags = allTags.filter((tag) => tag.toLowerCase().includes(tagSearchTerm.toLowerCase()))
 
   // Handle tag selection
   const handleTagToggle = (tagName: string) => {
-    setSelectedTags(prev => 
-      prev.includes(tagName)
-        ? prev.filter(tag => tag !== tagName)
-        : [...prev, tagName]
-    )
+    setSelectedTags((prev) => (prev.includes(tagName) ? prev.filter((tag) => tag !== tagName) : [...prev, tagName]))
   }
 
   const clearAllTags = () => {
@@ -265,17 +271,17 @@ export default function ArticlesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <main className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex items-center gap-2 text-primary">
           <Loader2 className="h-6 w-6 animate-spin" />
-          <span className="font-mono">Loading articles from database...</span>
+          <span className="font-mono">Loading articles...</span>
         </div>
-      </div>
+      </main>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background text-foreground">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
@@ -285,12 +291,28 @@ export default function ArticlesPage() {
               {/* Development-only controls */}
               {isClient && showDevControls && (
                 <div className="flex gap-2">
-                  <Button onClick={fetchFromAPI} disabled={apiLoading} variant="outline" size="sm" className="bg-transparent">
+                  <Button
+                    onClick={fetchFromAPI}
+                    disabled={apiLoading}
+                    variant="outline"
+                    size="sm"
+                    className="bg-transparent"
+                  >
                     {apiLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Code className="h-4 w-4 mr-2" />}
                     Fetch API
                   </Button>
-                  <Button onClick={handleSync} disabled={syncing} variant="outline" size="sm" className="bg-transparent">
-                    {syncing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+                  <Button
+                    onClick={handleSync}
+                    disabled={syncing}
+                    variant="outline"
+                    size="sm"
+                    className="bg-transparent"
+                  >
+                    {syncing ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                    )}
                     Sync DB
                   </Button>
                 </div>
@@ -299,10 +321,11 @@ export default function ArticlesPage() {
             <p className="text-muted-foreground text-lg">
               Technical articles, tutorials, and insights from my development journey
             </p>
+            {/* Removed pagination total count display */}
           </div>
 
           <Tabs defaultValue="articles" className="w-full">
-            <TabsList className={`grid w-full ${isClient && showDevControls ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            <TabsList className={`grid w-full ${isClient && showDevControls ? "grid-cols-2" : "grid-cols-1"}`}>
               <TabsTrigger value="articles" className="flex items-center gap-2">
                 <BookOpen className="h-4 w-4" />
                 Articles View
@@ -332,7 +355,10 @@ export default function ArticlesPage() {
                       )}
                       {/* Production-friendly message */}
                       {isClient && !showDevControls && (
-                        <p className="text-xs">Articles automatically sync with your Hashnode blog every {currentConfig.refreshIntervalMinutes} minutes</p>
+                        <p className="text-xs">
+                          Articles automatically sync with your Hashnode blog every{" "}
+                          {portfolioConfig.refreshIntervalMinutes} minutes
+                        </p>
                       )}
                     </div>
                     {/* Development-only toggle */}
@@ -341,384 +367,323 @@ export default function ArticlesPage() {
                         onClick={() => setAutoRefreshEnabled(!autoRefreshEnabled)}
                         className="text-xs px-2 py-1 rounded border border-primary/20 hover:bg-primary/10 transition-colors"
                       >
-                        Auto-refresh: {autoRefreshEnabled ? 'ON' : 'OFF'}
+                        Auto-refresh: {autoRefreshEnabled ? "ON" : "OFF"}
                       </button>
                     )}
                   </div>
                 </div>
               )}
 
-          {articles.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground mb-4">
-                No articles found. Make sure to update the HASHNODE_USERNAME in the code with your actual Hashnode
-                username.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Current username: <code className="bg-muted px-2 py-1 rounded">maroayman</code>
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* Search and Filters */}
-              <div className="mb-8 space-y-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input
-                    placeholder="Search articles..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 bg-background border-primary/20"
-                  />
+              {articles.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground mb-4">
+                    No articles found. Make sure to update the HASHNODE_USERNAME in the code with your actual Hashnode
+                    username.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Current username:{" "}
+                    <code className="bg-muted px-2 py-1 rounded">{portfolioConfig.hashnodeUsername}</code>
+                  </p>
                 </div>
+              ) : (
+                <>
+                  {/* Search and Filters */}
+                  <div className="mb-8 space-y-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                      <Input
+                        placeholder="Search articles..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10 bg-background border-primary/20"
+                      />
+                    </div>
 
-                <div className="flex items-center gap-4">
-                  {/* Tag Filter with Multi-Select */}
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="bg-transparent border-primary/20 justify-start"
-                      >
-                        <Filter className="h-4 w-4 mr-2" />
-                        {selectedTags.length === 0 
-                          ? "Filter by tags" 
-                          : `${selectedTags.length} tag${selectedTags.length > 1 ? 's' : ''} selected`
-                        }
-                        <ChevronDown className="h-4 w-4 ml-2" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80 p-0" align="start">
-                      <div className="p-4 border-b">
-                        <div className="relative">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                          <Input
-                            placeholder="Search tags..."
-                            value={tagSearchTerm}
-                            onChange={(e) => setTagSearchTerm(e.target.value)}
-                            className="pl-10 h-8"
-                          />
-                        </div>
-                      </div>
-                      <div className="max-h-60 overflow-y-auto">
-                        <div className="p-2">
-                          {filteredTags.length === 0 ? (
-                            <p className="text-sm text-muted-foreground p-2">No tags found</p>
-                          ) : (
-                            filteredTags.map((tag) => (
-                              <div key={tag} className="flex items-center space-x-2 p-2 hover:bg-accent rounded-sm">
-                                <Checkbox
-                                  id={`tag-${tag}`}
-                                  checked={selectedTags.includes(tag)}
-                                  onCheckedChange={() => handleTagToggle(tag)}
-                                />
-                                <label
-                                  htmlFor={`tag-${tag}`}
-                                  className="text-sm cursor-pointer flex-1 flex items-center justify-between"
+                    <div className="flex flex-wrap items-center gap-4">
+                      {/* Tag Filter with Multi-Select */}
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="bg-transparent border-primary/20 hover:bg-primary/10">
+                            <Tag className="h-4 w-4 mr-2" />
+                            Tags {selectedTags.length > 0 && `(${selectedTags.length})`}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80 p-4" align="start">
+                          <div className="space-y-4">
+                            <div className="relative">
+                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                              <Input
+                                placeholder="Search tags..."
+                                value={tagSearchTerm}
+                                onChange={(e) => setTagSearchTerm(e.target.value)}
+                                className="pl-10"
+                              />
+                            </div>
+                            {selectedTags.length > 0 && (
+                              <Button variant="ghost" size="sm" onClick={clearAllTags} className="w-full text-xs">
+                                <X className="h-3 w-3 mr-1" />
+                                Clear all tags
+                              </Button>
+                            )}
+                            <div className="max-h-48 overflow-y-auto space-y-2">
+                              {filteredTags.map((tag) => (
+                                <div
+                                  key={tag}
+                                  className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors ${
+                                    selectedTags.includes(tag)
+                                      ? "bg-primary/20 border border-primary"
+                                      : "hover:bg-muted"
+                                  }`}
+                                  onClick={() => handleTagToggle(tag)}
                                 >
-                                  <span>#{tag}</span>
-                                  <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                                  <span className="text-sm">#{tag}</span> {/* Added '#' for tag display */}
+                                  <Badge variant="secondary" className="text-xs">
                                     {tagCounts[tag]}
-                                  </span>
-                                </label>
-                              </div>
-                            ))
+                                  </Badge>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+
+                      {/* Series Filter */}
+                      {series.length > 0 && (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="bg-transparent border-primary/20 hover:bg-primary/10">
+                              <BookOpen className="h-4 w-4 mr-2" />
+                              Series {selectedSeries && `(1)`}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64 p-4" align="start">
+                            <div className="space-y-2">
+                              {selectedSeries && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setSelectedSeries(null)}
+                                  className="w-full text-xs"
+                                >
+                                  <X className="h-3 w-3 mr-1" />
+                                  Clear series filter
+                                </Button>
+                              )}
+                              {series.map((s) => (
+                                <div
+                                  key={s.id}
+                                  className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors ${
+                                    selectedSeries === s.name ? "bg-primary/20 border border-primary" : "hover:bg-muted"
+                                  }`}
+                                  onClick={() => setSelectedSeries(selectedSeries === s.name ? null : s.name)}
+                                >
+                                  <span className="text-sm">{s.name}</span>
+                                  <Badge variant="secondary" className="text-xs">
+                                    {s.total_posts}
+                                  </Badge>
+                                </div>
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      )}
+
+                      {/* Active filters display */}
+                      {(selectedTags.length > 0 || selectedSeries) && (
+                        <div className="flex flex-wrap gap-2">
+                          {selectedTags.map((tag) => (
+                            <Badge
+                              key={tag}
+                              variant="secondary"
+                              className="cursor-pointer hover:bg-destructive/20"
+                              onClick={() => handleTagToggle(tag)}
+                            >
+                              #{tag} {/* Added '#' for tag display */}
+                              <X className="h-3 w-3 ml-1" />
+                            </Badge>
+                          ))}
+                          {selectedSeries && (
+                            <Badge
+                              variant="secondary"
+                              className="cursor-pointer hover:bg-destructive/20"
+                              onClick={() => setSelectedSeries(null)}
+                            >
+                              {selectedSeries}
+                              <X className="h-3 w-3 ml-1" />
+                            </Badge>
                           )}
                         </div>
-                      </div>
-                      {selectedTags.length > 0 && (
-                        <div className="p-3 border-t">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={clearAllTags}
-                            className="w-full"
-                          >
-                            Clear all filters
-                          </Button>
-                        </div>
                       )}
-                    </PopoverContent>
-                  </Popover>
+                    </div>
+                  </div>
 
-                  {/* Selected Tags Display */}
-                  {selectedTags.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {selectedTags.map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="secondary"
-                          className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                          onClick={() => handleTagToggle(tag)}
-                        >
-                          #{tag}
-                          <X className="h-3 w-3 ml-1" />
-                        </Badge>
-                      ))}
+                  {/* Series Section */}
+                  {series.length > 0 && (
+                    <div className="mb-12">
+                      <h2 className="text-2xl font-bold text-primary mb-6 flex items-center gap-2">
+                        <BookOpen className="h-6 w-6" />
+                        Article Series
+                      </h2>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        {series.map((s, index) => (
+                          <Card
+                            key={index}
+                            className={`border-primary/20 hover:border-primary transition-all duration-300 cursor-pointer ${
+                              selectedSeries === s.name ? "border-primary bg-primary/5" : ""
+                            }`}
+                            onClick={() => setSelectedSeries(selectedSeries === s.name ? null : s.name)}
+                          >
+                            <CardHeader className="pb-2">
+                              <CardTitle className="text-lg flex items-center justify-between">
+                                {s.name}
+                                <Badge variant="secondary" className="text-xs w-fit mb-2">
+                                  {s.total_posts} articles
+                                </Badge>
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-sm text-muted-foreground">
+                                {s.description || "A collection of related articles"}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
                     </div>
                   )}
-                </div>
-              </div>
 
-              {/* Series Section */}
-              {series.length > 0 && (
-                <div className="mb-12">
-                  <h2 className="text-2xl font-bold text-primary mb-6 flex items-center gap-2">
-                    <BookOpen className="h-6 w-6" />
-                    Article Series
-                  </h2>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {series.map((s, index) => (
+                  {/* Articles Grid - now shows all filtered articles without pagination */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredArticles.map((article) => (
                       <Card
-                        key={index}
-                        className={`border-primary/20 hover:border-primary transition-all duration-300 cursor-pointer ${
-                          selectedSeries === s.name ? "border-primary bg-primary/5" : ""
-                        }`}
-                        onClick={() => setSelectedSeries(selectedSeries === s.name ? null : s.name)}
+                        key={article.id}
+                        className="group overflow-hidden border-primary/10 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
                       >
+                        {/* Cover Image */}
+                        {article.cover_image_url && (
+                          <div className="relative h-48 overflow-hidden">
+                            <Image
+                              src={article.cover_image_url || "/placeholder.svg"}
+                              alt={article.title}
+                              fill
+                              className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            />
+                            {article.series_name && (
+                              <Badge className="absolute top-3 left-3 bg-primary/90 text-primary-foreground">
+                                {article.series_name}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+
                         <CardHeader className="pb-2">
-                          <CardTitle className="text-lg flex items-center justify-between">
-                            {s.name}
-                            <Badge variant="secondary" className="text-xs w-fit mb-2">
-                              {s.total_posts} articles
-                            </Badge>
-                          </CardTitle>
+                          <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-primary transition-colors">
+                            {article.title}
+                          </h3>
                         </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-muted-foreground">
-                            {s.description || "A collection of related articles"}
-                          </p>
+
+                        <CardContent className="pb-2">
+                          <p className="text-muted-foreground text-sm line-clamp-3">{article.brief}</p>
+
+                          {/* Tags */}
+                          {article.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-3">
+                              {article.tags.slice(0, 3).map((tag) => (
+                                <Badge
+                                  key={tag.name}
+                                  variant="outline"
+                                  className="text-xs cursor-pointer hover:bg-primary/10"
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    handleTagToggle(tag.name)
+                                  }}
+                                >
+                                  {tag.name}
+                                </Badge>
+                              ))}
+                              {article.tags.length > 3 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{article.tags.length - 3}
+                                </Badge>
+                              )}
+                            </div>
+                          )}
                         </CardContent>
+
+                        <CardFooter className="pt-2 flex items-center justify-between text-xs text-muted-foreground border-t border-primary/5">
+                          <div className="flex items-center gap-3">
+                            {isClient && article.published_at && (
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                {formatDate(article.published_at)}
+                              </span>
+                            )}
+                            {article.read_time_minutes && (
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {formatReadTime(article.read_time_minutes)}
+                              </span>
+                            )}
+                          </div>
+                          <a
+                            href={article.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 hover:text-primary transition-colors"
+                          >
+                            Read <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </CardFooter>
                       </Card>
                     ))}
                   </div>
-                </div>
-              )}
 
-              {/* Articles Grid */}
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredArticles.map((article) => (
-                  <Card
-                    key={article.id}
-                    className="border-primary/20 hover:border-primary hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 group cursor-pointer"
-                  >
-                    {article.cover_image_url && (
-                      <div className="aspect-video bg-muted rounded-t-lg overflow-hidden">
-                        <img
-                          src={article.cover_image_url || "/placeholder.svg"}
-                          alt={article.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                    )}
-                    <CardHeader className="pb-3">
-                      {article.series_name && (
-                        <Badge variant="outline" className="text-xs w-fit mb-2">
-                          <Hash className="h-3 w-3 mr-1" />
-                          {article.series_name}
-                        </Badge>
-                      )}
-                      <CardTitle className="text-lg group-hover:text-primary transition-colors line-clamp-2">
-                        {article.title}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-sm text-muted-foreground mb-4 line-clamp-3">{article.brief}</p>
-
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {formatDate(article.published_at)}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {formatReadTime(article.read_time_minutes || 5)}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-1 mb-4">
-                        {article.tags.slice(0, 3).map((tag, tagIndex) => (
-                          <Badge key={tagIndex} variant="secondary" className="text-xs">
-                            {tag.name}
-                          </Badge>
-                        ))}
-                        {article.tags.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{article.tags.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full group-hover:border-primary group-hover:text-primary transition-colors bg-transparent"
-                        asChild
-                      >
-                        <Link href={article.url} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Read on Hashnode
-                        </Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              {/* Results Summary */}
-              {(searchTerm || selectedTags.length > 0 || selectedSeries) && (
-                <div className="mb-6 p-4 bg-muted/50 rounded-lg border">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
-                      <span>Showing {filteredArticles.length} of {articles.length} articles</span>
-                      {searchTerm && <span> • Searching: "{searchTerm}"</span>}
-                      {selectedTags.length > 0 && <span> • Tags: {selectedTags.join(', ')}</span>}
-                      {selectedSeries && <span> • Series: {selectedSeries}</span>}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setSearchTerm("")
-                        setSelectedTags([])
-                        setSelectedSeries(null)
-                        setTagSearchTerm("")
-                      }}
-                      className="text-xs"
-                    >
-                      Clear all filters
-                    </Button>
+                  <div className="mt-8 text-center text-sm text-muted-foreground">
+                    Showing {filteredArticles.length} of {articles.length} articles
+                    {selectedSeries && ` in "${selectedSeries}"`}
+                    {selectedTags.length > 0 && ` with tags: ${selectedTags.join(", ")}`}
                   </div>
-                </div>
-              )}
 
-              {filteredArticles.length === 0 && articles.length > 0 && (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground mb-2">No articles found matching your criteria.</p>
-                  <p className="text-sm text-muted-foreground">Try adjusting your filters or search terms.</p>
-                </div>
+                  {filteredArticles.length === 0 && articles.length > 0 && (
+                    <div className="text-center py-12">
+                      <p className="text-muted-foreground mb-2">No articles found matching your criteria.</p>
+                      <p className="text-sm text-muted-foreground">Try adjusting your filters or search terms.</p>
+                    </div>
+                  )}
+                </>
               )}
-            </>
-          )}
             </TabsContent>
 
             {/* API Response tab - development only */}
             {isClient && showDevControls && (
               <TabsContent value="api" className="mt-6">
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-bold text-primary">Hashnode API Response</h2>
-                    <Button 
-                      onClick={fetchFromAPI} 
-                      disabled={apiLoading} 
-                      variant="outline" 
-                      size="sm"
-                      className="bg-transparent"
-                    >
-                      {apiLoading ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                      )}
-                      Refresh API Data
-                    </Button>
-                  </div>
-
-                {apiError && (
-                  <div className="p-4 border border-red-500/20 bg-red-500/10 rounded-lg">
-                    <p className="text-red-500 font-mono text-sm">Error: {apiError}</p>
-                  </div>
-                )}
-
-                {apiLoading && (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="flex items-center gap-2 text-primary">
-                      <Loader2 className="h-6 w-6 animate-spin" />
-                      <span className="font-mono">Fetching from Hashnode API...</span>
-                    </div>
-                  </div>
-                )}
-
-                {apiResponse && !apiLoading && (
-                  <Card className="border-primary/20">
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Code className="h-5 w-5" />
-                        API Response Data
-                      </CardTitle>
-                      <div className="text-sm text-muted-foreground">
-                        <p>Status: {apiResponse.success ? 'Success' : 'Failed'}</p>
-                        <p>Timestamp: {apiResponse.metadata?.timestamp}</p>
-                        <p>Source: {apiResponse.metadata?.source}</p>
-                        <p>Username: {apiResponse.metadata?.username}</p>
+                <Card className="border-primary/20">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Database className="h-5 w-5" />
+                      API Response
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {apiError && (
+                      <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
+                        {apiError}
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {apiResponse.success && apiResponse.data && (
-                          <div className="grid md:grid-cols-2 gap-4">
-                            <div>
-                              <h3 className="font-semibold mb-2 flex items-center gap-2">
-                                <BookOpen className="h-4 w-4" />
-                                Articles ({apiResponse.data.articles?.length || 0})
-                              </h3>
-                              <div className="text-sm text-muted-foreground space-y-1">
-                                <p>Total Count: {apiResponse.data.totalCount}</p>
-                                <p>Page: {apiResponse.data.page}</p>
-                                <p>Page Size: {apiResponse.data.pageSize}</p>
-                                <p>Has Next: {apiResponse.data.hasNextPage ? 'Yes' : 'No'}</p>
-                              </div>
-                            </div>
-                            <div>
-                              <h3 className="font-semibold mb-2 flex items-center gap-2">
-                                <Hash className="h-4 w-4" />
-                                Series ({apiResponse.data.series?.length || 0})
-                              </h3>
-                              {apiResponse.data.series?.map((series: any, index: number) => (
-                                <div key={index} className="text-sm text-muted-foreground">
-                                  <p>• {series.name} ({series.posts?.totalDocuments || 0} posts)</p>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="mt-4">
-                          <h3 className="font-semibold mb-2">Raw JSON Response:</h3>
-                          <div className="bg-muted p-4 rounded-lg overflow-auto max-h-96">
-                            <pre className="text-xs font-mono">
-                              {JSON.stringify(apiResponse, null, 2)}
-                            </pre>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {!apiResponse && !apiLoading && !apiError && (
-                  <div className="text-center py-12 border border-primary/20 rounded-lg bg-primary/5">
-                    <div className="flex flex-col items-center gap-4">
-                      <Database className="h-12 w-12 text-primary/50" />
-                      <div>
-                        <h3 className="text-lg font-semibold text-primary mb-2">No API Data</h3>
-                        <p className="text-muted-foreground mb-4">
-                          Click "Fetch API" to load data from the Hashnode API endpoint
-                        </p>
-                        <Button onClick={fetchFromAPI} variant="outline" className="bg-transparent">
-                          <Code className="h-4 w-4 mr-2" />
-                          Fetch API Data
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
+                    )}
+                    {apiResponse ? (
+                      <pre className="bg-muted p-4 rounded-lg overflow-auto max-h-96 text-xs">
+                        {JSON.stringify(apiResponse, null, 2)}
+                      </pre>
+                    ) : (
+                      <p className="text-muted-foreground">Click "Fetch API" to see the raw API response</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
             )}
           </Tabs>
         </div>
       </div>
-    </div>
+    </main>
   )
 }

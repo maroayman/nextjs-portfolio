@@ -1,12 +1,14 @@
 // API route for fetching Hashnode articles
 import { fetchHashnodeArticles, fetchHashnodeSeries, clearHashnodeCache } from "../../../lib/hashnode"
 
+export const revalidate = 3600 // Revalidate every hour
+
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url)
     const username = url.searchParams.get("username") || "maroayman"
     const page = Number.parseInt(url.searchParams.get("page") || "1")
-    const pageSize = Number.parseInt(url.searchParams.get("pageSize") || "20")
+    const pageSize = Number.parseInt(url.searchParams.get("pageSize") || "9")
     const includeSeries = url.searchParams.get("includeSeries") === "true"
     const bypassCache = url.searchParams.get("bypassCache") === "true"
 
@@ -14,7 +16,7 @@ export async function GET(request: Request) {
       await clearHashnodeCache(username)
     }
 
-    // Fetch articles
+    // Fetch articles with pagination
     const articlesData = await fetchHashnodeArticles(username, page, pageSize)
 
     let seriesData: any[] = []
@@ -30,8 +32,8 @@ export async function GET(request: Request) {
         series: seriesData,
         page,
         pageSize,
-        hasNextPage: page * pageSize < articlesData.totalCount,
-        hasPreviousPage: page > 1,
+        hasNextPage: articlesData.hasNextPage,
+        hasPreviousPage: articlesData.hasPreviousPage,
       },
       metadata: {
         timestamp: new Date().toISOString(),
@@ -40,6 +42,8 @@ export async function GET(request: Request) {
         autoRefresh: "enabled",
         cacheEnabled: true,
         cacheBypass: bypassCache,
+        isrEnabled: true,
+        revalidateInterval: revalidate,
       },
     }
 
@@ -47,9 +51,11 @@ export async function GET(request: Request) {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        "Cache-Control": "public, s-maxage=120, stale-while-revalidate=1800",
+        "Cache-Control": `public, s-maxage=${revalidate}, stale-while-revalidate=86400`,
         "X-Generated-At": new Date().toISOString(),
         "X-Articles-Count": articlesData.articles.length.toString(),
+        "X-Total-Count": articlesData.totalCount.toString(),
+        "X-Current-Page": page.toString(),
       },
     })
   } catch (error) {

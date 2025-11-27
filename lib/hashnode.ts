@@ -17,6 +17,10 @@ export interface HashnodeArticle {
     url: string
   }
   url: string
+  content?: {
+    markdown: string
+    html: string
+  }
 }
 
 export interface HashnodeSeries {
@@ -59,6 +63,10 @@ const GET_USER_ARTICLES = `
             url
           }
           url
+          content {
+            markdown
+            html
+          }
         }
       }
     }
@@ -99,16 +107,17 @@ export async function fetchHashnodeArticles(
   username: string,
   page = 1,
   pageSize = 20,
-): Promise<{ articles: HashnodeArticle[]; totalCount: number }> {
+): Promise<{ articles: HashnodeArticle[]; totalCount: number; hasNextPage: boolean; hasPreviousPage: boolean }> {
   try {
     const cacheKey = cacheKeys.articles(username, page, pageSize)
     const cachedData = await getCachedData<{
       articles: HashnodeArticle[]
       totalCount: number
+      hasNextPage: boolean
+      hasPreviousPage: boolean
     }>(cacheKey)
 
     if (cachedData) {
-      console.log("[v0] Returning cached articles for", username)
       return cachedData
     }
 
@@ -123,18 +132,19 @@ export async function fetchHashnodeArticles(
         query: GET_USER_ARTICLES,
         variables: { username, pageSize: limitedPageSize, page },
       }),
+      next: { revalidate: 3600 }, // Revalidate every hour
     })
 
     const data = await response.json()
 
     if (data.errors) {
       console.error("Hashnode API errors:", data.errors)
-      return { articles: [], totalCount: 0 }
+      return { articles: [], totalCount: 0, hasNextPage: false, hasPreviousPage: false }
     }
 
     const posts = data.data?.user?.posts
     if (!posts) {
-      return { articles: [], totalCount: 0 }
+      return { articles: [], totalCount: 0, hasNextPage: false, hasPreviousPage: false }
     }
 
     const articles: HashnodeArticle[] = posts.nodes.map((node: any) => ({
@@ -148,11 +158,14 @@ export async function fetchHashnodeArticles(
       series: node.series,
       coverImage: node.coverImage,
       url: node.url,
+      content: node.content,
     }))
 
     const result = {
       articles,
       totalCount: posts.totalDocuments,
+      hasNextPage: posts.pageInfo?.hasNextPage || false,
+      hasPreviousPage: posts.pageInfo?.hasPreviousPage || false,
     }
 
     await setCachedData(cacheKey, result, CACHE_TTL.ARTICLES)
@@ -160,7 +173,7 @@ export async function fetchHashnodeArticles(
     return result
   } catch (error) {
     console.error("Error fetching Hashnode articles:", error)
-    return { articles: [], totalCount: 0 }
+    return { articles: [], totalCount: 0, hasNextPage: false, hasPreviousPage: false }
   }
 }
 
@@ -170,7 +183,6 @@ export async function fetchHashnodeSeries(username: string): Promise<HashnodeSer
     const cachedData = await getCachedData<HashnodeSeries[]>(cacheKey)
 
     if (cachedData) {
-      console.log("[v0] Returning cached series for", username)
       return cachedData
     }
 
