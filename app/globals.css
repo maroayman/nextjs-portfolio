@@ -4,51 +4,56 @@
 
 @layer base {
   :root {
-    /* Black, Red, Blue light theme colors */
-    --background: 0 0% 98%;
-    --foreground: 0 0% 9%;
-    --card: 0 0% 98%;
-    --card-foreground: 0 0% 9%;
-    --popover: 0 0% 98%;
-    --popover-foreground: 0 0% 9%;
-    --primary: 221 83% 53%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 84% 60%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 90%;
+    /* Minimal light theme - inspired by tom.preston-werner.com */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 13%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 13%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 13%;
+    --primary: 0 0% 13%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 13%;
+    --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
-    --accent: 221 83% 53%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 13%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 80%;
-    --input: 0 0% 80%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
     --ring: 221 83% 53%;
-    --radius: 0rem;
+    --radius: 0.375rem;
+    
+    /* Link color - classic blue */
+    --link: 221 83% 45%;
   }
 
   .dark {
-    /* Black, Red, Blue dark theme colors */
-    --background: 0 0% 3%;
-    --foreground: 0 0% 95%;
-    --card: 0 0% 3%;
-    --card-foreground: 0 0% 95%;
-    --popover: 0 0% 3%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 221 83% 53%;
-    --primary-foreground: 0 0% 95%;
-    /* Updated secondary to use better contrast colors */
-    --secondary: 221 83% 53%;
-    --secondary-foreground: 0 0% 95%;
+    /* Minimal dark theme */
+    --background: 0 0% 7%;
+    --foreground: 0 0% 93%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 93%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 93%;
+    --primary: 0 0% 93%;
+    --primary-foreground: 0 0% 7%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 93%;
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 65%;
-    --accent: 0 84% 60%;
-    --accent-foreground: 0 0% 95%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 93%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 95%;
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
+    --destructive-foreground: 0 0% 93%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
     --ring: 221 83% 53%;
+    
+    /* Link color - lighter blue for dark mode */
+    --link: 221 83% 65%;
   }
 }
 
@@ -56,67 +61,55 @@
   * {
     @apply border-border;
   }
+  
   body {
-    @apply bg-background text-foreground;
-    /* Monospace font for terminal aesthetic */
-    font-family: "Courier New", "Monaco", "Menlo", monospace;
-    /* Prevent horizontal scroll on mobile */
-    overflow-x: hidden;
+    @apply bg-background text-foreground antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.7;
   }
 
-  /* Ensure html doesn't allow horizontal scroll */
-  html {
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+    line-height: 1.3;
+  }
+
+  a {
+    color: hsl(var(--link));
+  }
+  
+  a:hover {
+    @apply underline;
+  }
+
+  /* Prevent horizontal scroll */
+  html, body {
     overflow-x: hidden;
   }
 }
 
-/* Terminal-style scrollbar */
+/* Minimal scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
-  /* Thinner scrollbar on mobile */
-}
-
-@media (min-width: 640px) {
-  ::-webkit-scrollbar {
-    width: 12px;
-  }
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-background;
+  @apply bg-transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-primary;
+  @apply bg-muted-foreground/30 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-primary/80;
+  @apply bg-muted-foreground/50;
 }
 
-/* Terminal cursor animation */
-@keyframes blink {
-  0%,
-  50% {
-    opacity: 1;
-  }
-  51%,
-  100% {
-    opacity: 0;
-  }
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
 }
 
-.terminal-cursor::after {
-  content: "█";
-  animation: blink 1s infinite;
-  color: hsl(var(--secondary));
-}
-
-/* Add touch-friendly tap targets for mobile */
-@media (max-width: 640px) {
-  button,
-  a {
-    min-height: 44px;
-    min-width: 44px;
-  }
+/* Selection */
+::selection {
+  @apply bg-foreground text-background;
 }

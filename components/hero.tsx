@@ -1,126 +1,80 @@
 "use client"
+
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Download, ExternalLink } from "lucide-react"
+import { Github, Linkedin, Mail, FileText } from "lucide-react"
+import { HashnodeIcon } from "@/components/icons/hashnode-icon"
+
+const GitLabIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M22.65 14.39L12 22.13 1.35 14.39a.84.84 0 0 1-.3-.94l1.22-3.78 2.44-7.51A.42.42 0 0 1 4.82 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.49h8.1l2.44-7.51A.42.42 0 0 1 18.6 2a.43.43 0 0 1 .58 0 .42.42 0 0 1 .11.18l2.44 7.51L23 13.45a.84.84 0 0 1-.35.94z"/>
+  </svg>
+)
 
 export function Hero() {
-  const resumeUrl = `/resume.pdf?v=${Date.now()}`
-
-  const scrollToAbout = () => {
-    const aboutSection = document.getElementById("about")
-    if (aboutSection) {
-      aboutSection.scrollIntoView({ behavior: "smooth" })
-    }
-  }
-
   return (
-    <section className="min-h-screen flex items-center justify-center bg-background relative">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-0">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-6 sm:mb-8 text-primary font-mono text-[8px] xs:text-[10px] sm:text-sm overflow-x-auto">
-            <pre className="hidden sm:block">{`
-╔══════════════════════════════════════════════════════════════╗
-║                    MARWAN AYMAN SHAWKY                      ║
-║                  DevOps & Cloud Engineer                    ║
-╚══════════════════════════════════════════════════════════════╝
-            `}</pre>
-            <div className="sm:hidden text-center py-4">
-              <h1 className="text-xl font-bold text-primary">MARWAN AYMAN SHAWKY</h1>
-              <p className="text-sm text-muted-foreground">DevOps & Cloud Engineer</p>
-            </div>
+    <header className="py-16 sm:py-20">
+      <div className="container mx-auto px-4 sm:px-6 max-w-3xl">
+        <h1 className="text-3xl sm:text-4xl font-bold mb-4">Marwan Ayman Shawky</h1>
+        <p className="text-lg text-muted-foreground mb-8 leading-relaxed max-w-2xl">
+          Cloud & DevOps Engineer passionate about building scalable infrastructure, automating deployments, and optimizing system performance.
+        </p>
+        
+        <div className="flex flex-wrap gap-4 text-sm mb-6">
+          <Link 
+            href="mailto:marwanayman.shawky@gmail.com" 
+            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Mail className="h-4 w-4" />
+            marwanayman.shawky@gmail.com
+          </Link>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link 
+              href="https://github.com/maroayman" 
+              target="_blank"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="GitHub"
+            >
+              <Github className="h-5 w-5" />
+            </Link>
+            <Link 
+              href="https://gitlab.com/maroayman" 
+              target="_blank"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="GitLab"
+            >
+              <GitLabIcon className="h-5 w-5" />
+            </Link>
+            <Link 
+              href="https://linkedin.com/in/maroayman" 
+              target="_blank"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="LinkedIn"
+            >
+              <Linkedin className="h-5 w-5" />
+            </Link>
+            <Link 
+              href="https://hashnode.com/@maroayman" 
+              target="_blank"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Hashnode Blog"
+            >
+              <HashnodeIcon className="h-5 w-5" />
+            </Link>
           </div>
-
-          <div className="space-y-4 sm:space-y-6 text-foreground">
-            <div className="text-base sm:text-lg">
-              <span className="text-primary">$</span> whoami
-            </div>
-            <div className="pl-2 sm:pl-4 text-sm sm:text-base text-muted-foreground">
-              Cloud & DevOps Engineer passionate about building scalable infrastructure, automating deployments, and
-              optimizing system performance.
-            </div>
-
-            <div className="text-base sm:text-lg">
-              <span className="text-primary">$</span> ls -la skills/
-            </div>
-            <div className="pl-2 sm:pl-4 text-sm sm:text-base text-muted-foreground break-words">
-              drwxr-xr-x kubernetes docker terraform aws gcp ansible jenkins
-            </div>
-
-            <div className="text-base sm:text-lg">
-              <span className="text-primary">$</span> cat contact.txt
-            </div>
-            <div className="pl-2 sm:pl-4 space-y-2">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm">
-                <span className="text-secondary">email:</span>
-                <Link
-                  href="mailto:marwanayman.shawky@gmail.com"
-                  className="text-accent hover:text-accent/80 underline break-all"
-                >
-                  marwanayman.shawky@gmail.com
-                </Link>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm">
-                <span className="text-secondary">github:</span>
-                <Link
-                  href="https://github.com/maroayman"
-                  target="_blank"
-                  className="text-accent hover:text-accent/80 underline"
-                >
-                  github.com/maroayman
-                </Link>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm">
-                <span className="text-secondary">linkedin:</span>
-                <Link
-                  href="https://linkedin.com/in/maroayman"
-                  target="_blank"
-                  className="text-accent hover:text-accent/80 underline"
-                >
-                  linkedin.com/in/maroayman
-                </Link>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm">
-                <span className="text-secondary">blog:</span>
-                <Link
-                  href="https://hashnode.com/@maroayman"
-                  target="_blank"
-                  className="text-accent hover:text-accent/80 underline"
-                >
-                  hashnode.com/@maroayman
-                </Link>
-              </div>
-            </div>
-
-            <div className="text-base sm:text-lg">
-              <span className="text-primary">$</span> ./download_resume.sh
-            </div>
-            <div className="pl-2 sm:pl-4">
-              <a href={resumeUrl} target="_blank" rel="noopener noreferrer">
-                <Button size="sm" variant="default" className="font-mono text-xs w-full sm:w-auto">
-                  <Download className="h-3 w-3 mr-1" />
-                  Download Resume
-                </Button>
-              </a>
-            </div>
-
-            <div className="text-base sm:text-lg">
-              <span className="text-primary">$</span> cd projects/
-            </div>
-            <div className="pl-2 sm:pl-4">
-              <Link href="/projects">
-                <Button size="sm" variant="default" className="font-mono text-xs w-full sm:w-auto">
-                  <ExternalLink className="h-3 w-3 mr-1" />
-                  View All Projects
-                </Button>
-              </Link>
-            </div>
-
-            <div className="pt-4">
-              <span className="text-primary">$</span> <span className="terminal-cursor"></span>
-            </div>
-          </div>
+          
+          <Link 
+            href="/resume.pdf" 
+            target="_blank"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-md hover:bg-muted transition-colors"
+          >
+            <FileText className="h-4 w-4" />
+            Resume
+          </Link>
         </div>
       </div>
-    </section>
+    </header>
   )
 }

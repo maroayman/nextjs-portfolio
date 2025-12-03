@@ -1,12 +1,13 @@
 import { NavigationSidebar } from "@/components/navigation-sidebar"
 import { Hero } from "@/components/hero"
 import { About } from "@/components/about"
-import { Contact } from "@/components/contact"
-import { Footer } from "@/components/footer"
 import { Skills } from "@/components/skills"
 import { Education } from "@/components/education"
 import { ProfessionalDevelopment } from "@/components/professional-development"
 import { Volunteering } from "@/components/volunteering"
+import { Contact } from "@/components/contact"
+import { Footer } from "@/components/footer"
+import { ScrollToTop } from "@/components/scroll-to-top"
 
 export default function Home() {
   return (
@@ -20,6 +21,7 @@ export default function Home() {
       <Volunteering />
       <Contact />
       <Footer />
+      <ScrollToTop />
     </main>
   )
 }
