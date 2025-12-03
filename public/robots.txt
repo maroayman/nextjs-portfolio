@@ -1,0 +1,6 @@
+# robots.txt for Marwan Ayman Portfolio
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://maroayman.vercel.app/sitemap.xml
