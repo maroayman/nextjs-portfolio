@@ -19,7 +19,7 @@ export function Volunteering() {
                   </CardTitle>
                   <CardDescription className="flex items-center gap-2 mt-2">
                     <Calendar className="h-4 w-4" />
-                    June 2025 – Present • Cairo, Egypt
+                    June 2025 – December 2025 • Cairo, Egypt
                   </CardDescription>
                   <div className="mt-2">
                     <Badge variant="outline" className="text-xs">
