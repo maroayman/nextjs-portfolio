@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
 import { Moon, Sun } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -8,6 +9,8 @@ import { useEffect, useState } from "react"
 export function NavigationSidebar() {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const pathname = usePathname()
+  const isHomePage = pathname === "/"
 
   useEffect(() => {
     setMounted(true)
@@ -23,13 +26,13 @@ export function NavigationSidebar() {
           
           <div className="flex items-center gap-6">
             <Link 
-              href="#about" 
+              href={isHomePage ? "#about" : "/#about"}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block"
             >
               About
             </Link>
             <Link 
-              href="#experience" 
+              href={isHomePage ? "#experience" : "/experience"}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block"
             >
               Experience

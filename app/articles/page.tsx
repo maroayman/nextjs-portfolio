@@ -57,10 +57,22 @@ export default async function ArticlesPage() {
 
 function ArticlesLoading() {
   return (
-    <main className="min-h-screen bg-background flex items-center justify-center">
-      <div className="flex items-center gap-2 text-primary">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <span className="font-mono">Loading articles...</span>
+    <main className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 sm:px-6 max-w-3xl py-12">
+        <div className="animate-pulse space-y-4">
+          <div className="h-10 w-32 bg-muted rounded" />
+          <div className="h-5 w-64 bg-muted rounded" />
+          <div className="h-10 w-full bg-muted rounded mt-8" />
+          <div className="space-y-6 mt-8">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="space-y-2">
+                <div className="h-6 w-3/4 bg-muted rounded" />
+                <div className="h-4 w-full bg-muted rounded" />
+                <div className="h-4 w-1/4 bg-muted rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </main>
   )

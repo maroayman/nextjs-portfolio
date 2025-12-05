@@ -1,7 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { Github, ExternalLink, ArrowLeft, Clock } from "lucide-react"
+import { Github, ExternalLink, Clock } from "lucide-react"
+import { NavigationSidebar } from "@/components/navigation-sidebar"
 
 const personalProjects = [
   {
@@ -177,22 +178,10 @@ const academicProjects = [
 export default function ProjectsPage() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b">
-        <div className="container mx-auto px-4 sm:px-6 max-w-4xl">
-          <div className="flex items-center justify-between h-14">
-            <Link href="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Link>
-            <span className="font-semibold">Projects</span>
-            <div className="w-14"></div>
-          </div>
-        </div>
-      </header>
+      <NavigationSidebar />
 
       <main className="py-12">
-        <div className="container mx-auto px-4 sm:px-6 max-w-4xl">
+        <div className="container mx-auto px-4 sm:px-6 max-w-3xl">
           {/* Intro */}
           <div className="mb-12">
             <h1 className="text-3xl font-bold mb-4">Projects</h1>
