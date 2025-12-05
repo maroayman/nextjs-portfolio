@@ -5,7 +5,12 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { ScrollToTop } from "@/components/scroll-to-top"
 
-const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"] })
+const jetbrainsMono = JetBrains_Mono({ 
+  subsets: ["latin"],
+  display: "swap", // Prevents FOIT (Flash of Invisible Text)
+  preload: true,
+  variable: "--font-jetbrains",
+})
 
 const siteUrl = "https://maroayman.vercel.app" // Update this to your actual domain
 
@@ -88,12 +93,20 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={jetbrainsMono.variable}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#000000" />
+        
+        {/* Preconnect to external resources for faster loading */}
+        <link rel="preconnect" href="https://github.com" />
+        <link rel="preconnect" href="https://linkedin.com" />
+        <link rel="preconnect" href="https://hashnode.com" />
+        <link rel="dns-prefetch" href="https://github.com" />
+        <link rel="dns-prefetch" href="https://linkedin.com" />
+        <link rel="dns-prefetch" href="https://cdn.hashnode.com" />
       </head>
       <body className={jetbrainsMono.className}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>

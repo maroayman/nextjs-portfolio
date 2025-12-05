@@ -1,5 +1,3 @@
-"use client"
-
 import Link from "next/link"
 import { Github, Linkedin, Mail, FileText } from "lucide-react"
 import { HashnodeIcon } from "@/components/icons/hashnode-icon"
