@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Github, Linkedin, Mail, FileText } from "lucide-react"
+import { Github, Linkedin, Mail, Phone, FileText } from "lucide-react"
 import { HashnodeIcon } from "@/components/icons/hashnode-icon"
 
 const GitLabIcon = ({ className }: { className?: string }) => (
@@ -17,20 +17,22 @@ export function Hero() {
           Cloud & DevOps Engineer passionate about building scalable infrastructure, automating deployments, and optimizing system performance.
         </p>
         
-        <div className="flex flex-wrap gap-4 text-sm mb-6">
-          <div className="flex items-center gap-1.5 text-muted-foreground">
-            <Mail className="h-4 w-4" />
-            <Link 
-              href="mailto:marwanayman.shawky@gmail.com" 
-              className="text-blue-500 hover:text-blue-600 transition-colors"
-            >
-              marwanayman.shawky@gmail.com
-            </Link>
-          </div>
-        </div>
-        
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
+            <Link 
+              href="mailto:marwanayman.shawky@gmail.com"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Email"
+            >
+              <Mail className="h-5 w-5" />
+            </Link>
+            <Link 
+              href="tel:+201122889126"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Phone"
+            >
+              <Phone className="h-5 w-5" />
+            </Link>
             <Link 
               href="https://github.com/maroayman" 
               target="_blank"

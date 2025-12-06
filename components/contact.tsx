@@ -64,7 +64,9 @@ export function Contact() {
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
               <Phone className="h-4 w-4" />
-              <span>+201122889126</span>
+              <Link href="tel:+201122889126" className="hover:text-foreground transition-colors">
+                +201122889126
+              </Link>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
               <MapPin className="h-4 w-4" />
