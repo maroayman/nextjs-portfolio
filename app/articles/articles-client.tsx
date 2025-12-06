@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect, useCallback } from "react"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -58,11 +59,14 @@ export default function ArticlesClient({
   initialSeries, 
   lastSync 
 }: ArticlesClientProps) {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+  
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [tagSearchTerm, setTagSearchTerm] = useState("")
   const [selectedSeries, setSelectedSeries] = useState<string | null>(null)
-  const [currentPage, setCurrentPage] = useState(1)
   const [sortBy, setSortBy] = useState<SortOption>("date-desc")
 
   const articles = initialArticles
@@ -112,6 +116,16 @@ export default function ArticlesClient({
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredArticles.length / ARTICLES_PER_PAGE)
+  
+  // Get current page from URL, clamped to valid range
+  const currentPage = useMemo(() => {
+    const pageParam = searchParams.get('page')
+    const page = pageParam ? parseInt(pageParam, 10) : 1
+    if (isNaN(page) || page < 1) return 1
+    if (totalPages > 0 && page > totalPages) return totalPages
+    return page
+  }, [searchParams, totalPages])
+
   const startIndex = (currentPage - 1) * ARTICLES_PER_PAGE
   const endIndex = startIndex + ARTICLES_PER_PAGE
   const paginatedArticles = filteredArticles.slice(startIndex, endIndex)
@@ -119,38 +133,50 @@ export default function ArticlesClient({
   // Filter tags based on search term
   const filteredTags = allTags.filter((tag) => tag.toLowerCase().includes(tagSearchTerm.toLowerCase()))
 
+  // Update URL with new page number
+  const updatePageInUrl = useCallback((page: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (page === 1) {
+      params.delete('page')
+    } else {
+      params.set('page', page.toString())
+    }
+    const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname
+    router.push(newUrl, { scroll: false })
+  }, [searchParams, pathname, router])
+
   // Handle tag selection
   const handleTagToggle = (tagName: string) => {
     setSelectedTags((prev) => (prev.includes(tagName) ? prev.filter((tag) => tag !== tagName) : [...prev, tagName]))
-    setCurrentPage(1)
+    updatePageInUrl(1)
   }
 
   const clearAllTags = () => {
     setSelectedTags([])
-    setCurrentPage(1)
+    updatePageInUrl(1)
   }
 
   const clearAllFilters = () => {
     setSelectedTags([])
     setSelectedSeries(null)
     setSearchTerm("")
-    setCurrentPage(1)
+    updatePageInUrl(1)
   }
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value)
-    setCurrentPage(1)
+    updatePageInUrl(1)
   }
 
   const handleSeriesChange = (seriesName: string) => {
     setSelectedSeries(selectedSeries === seriesName ? null : seriesName)
-    setCurrentPage(1)
+    updatePageInUrl(1)
   }
 
   const goToPage = useCallback((page: number) => {
-    setCurrentPage(page)
+    updatePageInUrl(page)
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [])
+  }, [updatePageInUrl])
 
   // Keyboard navigation for pagination
   useEffect(() => {
