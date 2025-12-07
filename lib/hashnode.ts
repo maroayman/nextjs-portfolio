@@ -132,7 +132,6 @@ export async function fetchHashnodeArticles(
         query: GET_USER_ARTICLES,
         variables: { username, pageSize: limitedPageSize, page },
       }),
-      next: { revalidate: 3600 }, // Revalidate every hour
     })
 
     const data = await response.json()
