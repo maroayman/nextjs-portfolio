@@ -1,9 +1,13 @@
 /** @type {import('next').NextConfig} */
+
+// Feature flag: Set to true to enable blog/articles section
+const SHOW_BLOG_SECTION = false
+
 const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  
+
   // React Compiler for automatic optimizations
   reactCompiler: true,
 
@@ -30,6 +34,20 @@ const nextConfig = {
 
   // Compression
   compress: true,
+
+  // Redirects - redirect /articles to / when blog is disabled
+  async redirects() {
+    if (!SHOW_BLOG_SECTION) {
+      return [
+        {
+          source: '/articles',
+          destination: '/',
+          permanent: false, // 307 temporary redirect (can re-enable later)
+        },
+      ]
+    }
+    return []
+  },
 
   // Performance headers
   async headers() {
@@ -81,3 +99,4 @@ const nextConfig = {
 }
 
 export default nextConfig
+
