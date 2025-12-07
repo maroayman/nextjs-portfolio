@@ -1,14 +1,28 @@
-name: Deploy Resume to Vercel
+name: Deploy Resume
 
 on:
   push:
-    branches: [main]
+    branches: [main, cloudflare-pages]
     paths: ['public/resume.pdf']
   workflow_dispatch:
+    inputs:
+      target:
+        description: 'Deployment target'
+        required: true
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - vercel
+          - cloudflare
+          - both
 
 jobs:
-  deploy:
+  deploy-vercel:
     runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.target == 'vercel' || inputs.target == 'both' || (inputs.target == 'auto' && github.ref == 'refs/heads/main')))
     steps:
       - uses: actions/checkout@v4
       
@@ -19,3 +33,30 @@ jobs:
           vercel-org-id: ${{ secrets.ORG_ID }}
           vercel-project-id: ${{ secrets.PROJECT_ID }}
           vercel-args: '--prod'
+
+  deploy-cloudflare:
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/cloudflare-pages') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.target == 'cloudflare' || inputs.target == 'both' || (inputs.target == 'auto' && github.ref == 'refs/heads/cloudflare-pages')))
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy out --project-name=v0
