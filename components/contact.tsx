@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import Link from "next/link"
 import { Github, Linkedin, Mail, Phone, MapPin } from "lucide-react"
 import { HashnodeIcon } from "@/components/icons/hashnode-icon"
@@ -13,13 +13,42 @@ const GitLabIcon = ({ className }: { className?: string }) => (
 
 export function Contact() {
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle")
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [formValues, setFormValues] = useState({
+    name: "",
+    email: "",
+    message: "",
+    honey: "", // honeypot
+  })
+
+  const isValid = useMemo(() => {
+    if (!formValues.name.trim() || !formValues.email.trim() || !formValues.message.trim()) return false
+    if (formValues.name.length > 80 || formValues.message.length > 2000) return false
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(formValues.email)
+  }, [formValues])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setErrorMessage(null)
+
+    if (!isValid) {
+      setErrorMessage("Please double-check your name, email, and message.")
+      return
+    }
+
+    // basic honeypot check to deter bots
+    if (formValues.honey) {
+      setErrorMessage("Something went wrong. Please try again.")
+      return
+    }
+
     setStatus("sending")
 
     const form = e.currentTarget
     const formData = new FormData(form)
+    formData.set("_captcha", "true")
+    formData.set("_replyto", formValues.email)
 
     // Create abort controller for timeout
     const controller = new AbortController()
@@ -39,22 +68,23 @@ export function Contact() {
 
       if (response.ok) {
         setStatus("sent")
-        form.reset()
+        setFormValues({ name: "", email: "", message: "", honey: "" })
         setTimeout(() => setStatus("idle"), 3000)
       } else {
-        console.error("Form submission failed:", response.status, response.statusText)
+        const bodyText = await response.text().catch(() => "")
+        console.error("Form submission failed:", response.status, response.statusText, bodyText)
+        setErrorMessage("Could not send right now. Please try again shortly.")
         setStatus("error")
-        setTimeout(() => setStatus("idle"), 3000)
       }
     } catch (err) {
       clearTimeout(timeoutId)
-      if (err instanceof Error && err.name === 'AbortError') {
+      if (err instanceof Error && err.name === "AbortError") {
         console.error("Form submission timed out")
       } else {
         console.error("Form submission error:", err)
       }
+      setErrorMessage("Network timeout or error. Please retry.")
       setStatus("error")
-      setTimeout(() => setStatus("idle"), 3000)
     }
   }
 
@@ -120,11 +150,34 @@ export function Contact() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
+        <form onSubmit={handleSubmit} className="space-y-4 max-w-md" noValidate>
           {/* Formsubmit.co configuration */}
           <input type="hidden" name="_subject" value="New Portfolio Contact Message" />
-          <input type="hidden" name="_captcha" value="false" />
           <input type="hidden" name="_template" value="table" />
+          <input
+            type="text"
+            name="_honey"
+            value={formValues.honey}
+            onChange={(e) => setFormValues((v) => ({ ...v, honey: e.target.value }))}
+            className="hidden"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+          />
+
+          <div
+            role="status"
+            aria-live="polite"
+            className={`text-sm ${status === "error" ? "text-red-600" : status === "sent" ? "text-green-600" : "text-muted-foreground"}`}
+          >
+            {status === "sending"
+              ? "Sending..."
+              : status === "sent"
+                ? "Message sent! Thanks for reaching out."
+                : status === "error"
+                  ? errorMessage ?? "Something went wrong. Please try again."
+                  : "I usually respond within a day."}
+          </div>
 
           <div>
             <label htmlFor="name" className="block text-sm font-medium mb-1">
@@ -135,6 +188,9 @@ export function Contact() {
               id="name"
               name="name"
               required
+              maxLength={80}
+              value={formValues.name}
+              onChange={(e) => setFormValues((v) => ({ ...v, name: e.target.value }))}
               className="w-full px-3 py-2 border rounded-md bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
@@ -147,6 +203,10 @@ export function Contact() {
               id="email"
               name="email"
               required
+              inputMode="email"
+              autoComplete="email"
+              value={formValues.email}
+              onChange={(e) => setFormValues((v) => ({ ...v, email: e.target.value }))}
               className="w-full px-3 py-2 border rounded-md bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
@@ -159,15 +219,26 @@ export function Contact() {
               name="message"
               rows={4}
               required
+              maxLength={2000}
+              value={formValues.message}
+              onChange={(e) => setFormValues((v) => ({ ...v, message: e.target.value }))}
               className="w-full px-3 py-2 border rounded-md bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
             />
           </div>
           <button
             type="submit"
-            disabled={status === "sending"}
+            disabled={status === "sending" || !isValid}
             className="px-4 py-2 bg-foreground text-background text-sm rounded-md hover:bg-foreground/90 transition-colors disabled:opacity-50"
           >
-            {status === "sending" ? "Sending..." : status === "sent" ? "Sent!" : status === "error" ? "Error - Try Again" : "Send Message"}
+            {status === "sending"
+              ? "Sending..."
+              : status === "sent"
+                ? "Sent!"
+                : status === "error"
+                  ? "Error - Try Again"
+                  : !isValid
+                    ? "Complete the form"
+                    : "Send Message"}
           </button>
         </form>
       </div>
