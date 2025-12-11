@@ -8,11 +8,13 @@ import { Volunteering } from "@/components/volunteering"
 import { Contact } from "@/components/contact"
 import { Footer } from "@/components/footer"
 import { ScrollToTop } from "@/components/scroll-to-top"
+import { NavCommandMenu } from "@/components/nav-command-menu"
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-background">
       <NavigationSidebar />
+      <NavCommandMenu />
       <Hero />
       <About />
       <Skills />
