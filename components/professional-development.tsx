@@ -1,30 +1,15 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import { getLatestRolesForMainPage } from "@/lib/work-experience"
 
-const workExperience = [
-  {
-    id: 1,
-    position: "DevOps Trainee",
-    company: "Digital Egypt Pioneers Initiative",
-    url: "https://depi.gov.eg",
-    period: "Jun 2025 – Dec 2025",
-    location: "Cairo, Egypt",
-    description: "Undergoing structured training in DevOps, cloud computing, and Linux administration.",
-    technologies: ["Linux", "Kubernetes", "Terraform", "Ansible", "Docker", "Jenkins"],
-  },
-  {
-    id: 2,
-    position: "DevOps Intern",
-    company: "Ghaymah Cloud Solutions",
-    url: "https://ghaymah.systems",
-    period: "Sep 2025 – Oct 2025",
-    location: "Remote, Saudi Arabia",
-    description: "Working on cloud automation, CI/CD pipelines, and infrastructure provisioning.",
-    technologies: ["Docker", "CI/CD", "Cloud Automation", "API", "Cloud Deployment"],
-  },
-]
-
+/**
+ * Professional Development section component for the main page.
+ * Displays only the latest 2 roles from the most recent companies for brevity.
+ * Full experience details are available on the dedicated /experience page.
+ * @returns {JSX.Element} The rendered section
+ */
 export function ProfessionalDevelopment() {
+  const latestRoles = getLatestRolesForMainPage();
   return (
     <section id="experience" className="py-12 border-t">
       <div className="container mx-auto px-4 sm:px-6 max-w-3xl">
@@ -40,8 +25,8 @@ export function ProfessionalDevelopment() {
         </div>
 
         <div className="space-y-8">
-          {workExperience.map((job) => (
-            <div key={job.id}>
+          {latestRoles.map((job, index) => (
+            <div key={index}>
               <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-2">
                 <h3 className="font-semibold">{job.position}</h3>
                 <span className="text-sm text-muted-foreground">{job.period}</span>
