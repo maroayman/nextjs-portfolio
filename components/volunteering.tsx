@@ -2,10 +2,10 @@ import Link from "next/link"
 
 export function Volunteering() {
   return (
-    <section id="volunteering" className="py-12 border-t">
+    <section id="volunteering" className="py-12 border-t content-auto">
       <div className="container mx-auto px-4 sm:px-6 max-w-3xl">
         <h2 className="text-2xl font-bold mb-8">Volunteering</h2>
-        
+
         <div>
           <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-2">
             <h3 className="font-semibold">Group Leader Volunteer</h3>

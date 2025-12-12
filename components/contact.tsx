@@ -89,7 +89,7 @@ export function Contact() {
   }
 
   return (
-    <section id="contact" className="py-12 border-t">
+    <section id="contact" className="py-12 border-t content-auto">
       <div className="container mx-auto px-4 sm:px-6 max-w-3xl">
         <h2 className="text-2xl font-bold mb-6">Get in Touch</h2>
 
