@@ -17,20 +17,18 @@ function ResponsibilitiesList({ items }: { items: string[] }) {
 
   return (
     <div className="mb-3">
-      <div className="flex flex-col gap-2 items-start">
+      <ul className="text-sm text-muted-foreground space-y-1.5">
         {visibleItems.map((item, index) => (
-          <span
-            key={index}
-            className="inline-flex text-xs px-3 py-1.5 bg-muted/50 text-muted-foreground rounded-full hover:bg-muted hover:text-foreground transition-all duration-200"
-          >
-            {item}
-          </span>
+          <li key={index} className="flex items-start gap-2">
+            <span className="text-primary mt-1 text-xs">•</span>
+            <span className="leading-relaxed">{item}</span>
+          </li>
         ))}
-      </div>
+      </ul>
       {hasMore && (
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="inline-flex items-center gap-1 mt-2 px-3 py-1 text-xs text-muted-foreground bg-muted/50 hover:bg-muted hover:text-foreground rounded-full transition-all duration-200"
+          className="flex items-center gap-1 mt-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           {isExpanded ? (
             <>
@@ -107,7 +105,7 @@ export default function ExperiencePage() {
                           {role.description}
                         </p>
 
-                        {/* Responsibilities - collapsible list */}
+                        {/* Responsibilities - collapsible bullet points */}
                         {role.responsibilities && (
                           <ResponsibilitiesList items={role.responsibilities} />
                         )}

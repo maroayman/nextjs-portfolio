@@ -5,11 +5,11 @@ description: How to add a new project entry to the portfolio
 # Adding Projects
 
 ## File Location
-`app/projects/page.tsx`
+`lib/projects.ts`
 
 ## Steps
 
-1. Open `app/projects/page.tsx`
+1. Open `lib/projects.ts`
 
 2. Add new entry to either `personalProjects` or `academicProjects` array
 
@@ -20,23 +20,23 @@ description: How to add a new project entry to the portfolio
   description: "Brief 1-2 sentence description of the project",
   technologies: ["Tech1", "Tech2", "Tech3"],
   features: [
-    "First key feature (keep concise)",
+    "First key feature",
     "Second key feature",
     "Third key feature",
     "Fourth key feature",
-    // Add more as needed - UI shows first 4 with "Show X more" button
+    // First 4 items visible, rest collapsed with "Show X more"
   ],
   github: "https://github.com/username/repo", // or null
   demo: "https://demo-url.com", // or null
-  duration: "2 weeks", // optional, for personal projects
+  duration: "2 weeks", // optional, for personal projects only
 },
 ```
 
 ## Features Display
-- Displayed as **stacked rounded pill chips** with muted gray background
-- **Collapsible**: Shows first 4 items, then "Show X more" button
-- Keep each item **concise** (under 60 characters ideal)
-- Start with descriptive phrases: "Built with...", "Automated...", "Full CRUD..."
+- Displayed as **simple bullet points** with primary-colored dots
+- **Collapsible**: First 4 items visible, "Show X more" button reveals the rest
+- Keep items concise and descriptive
+- Component: `FeaturesList` in `app/projects/page.tsx`
 
 ## Project Types
 - **Personal Projects**: Include `duration` field
@@ -45,4 +45,5 @@ description: How to add a new project entry to the portfolio
 ## Important Notes
 - `github` and `demo` can be `null` if not available
 - Most significant projects should be listed first
-- Projects page component: `app/projects/page.tsx`
+- Data file: `lib/projects.ts`
+- Page component: `app/projects/page.tsx`

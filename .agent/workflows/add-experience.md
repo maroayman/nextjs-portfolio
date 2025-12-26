@@ -28,11 +28,11 @@ description: How to add a new work experience entry to the portfolio
       description: "Brief 1-2 sentence description of the role",
       technologies: ["Tech1", "Tech2", "Tech3"],
       responsibilities: [
-        "First key responsibility (keep under 60 chars)",
-        "Second key responsibility",
-        "Third key responsibility",
-        "Fourth key responsibility",
-        // Add more as needed - UI shows first 4 with "Show X more" button
+        "First responsibility",
+        "Second responsibility",
+        "Third responsibility",
+        "Fourth responsibility",
+        // First 4 items visible, rest collapsed with "Show X more"
       ],
     },
   ],
@@ -40,10 +40,10 @@ description: How to add a new work experience entry to the portfolio
 ```
 
 ## Responsibilities Display
-- Displayed as **stacked rounded pill chips** with muted gray background
-- **Collapsible**: Shows first 4 items, then "Show X more" button
-- Keep each item **concise** (under 60 characters ideal)
-- Start with action verbs: "Designing...", "Managing...", "Implementing..."
+- Displayed as **simple bullet points** with primary-colored dots
+- **Collapsible**: First 4 items visible, "Show X more" button reveals the rest
+- Keep items concise and action-oriented
+- Component: `ResponsibilitiesList` in `app/experience/page.tsx`
 
 ## For Promotions (Multiple Roles)
 Add multiple objects to the `roles` array, **newest role first**:
