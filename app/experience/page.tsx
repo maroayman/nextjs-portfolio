@@ -1,9 +1,53 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { NavigationSidebar } from "@/components/navigation-sidebar"
 import { workExperience } from "@/lib/work-experience"
 import { PaginatedList } from "@/components/ui/paginated-list"
+import { ChevronDown, ChevronUp } from "lucide-react"
+
+const INITIAL_VISIBLE = 4
+
+function ResponsibilitiesList({ items }: { items: string[] }) {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const hasMore = items.length > INITIAL_VISIBLE
+  const visibleItems = isExpanded ? items : items.slice(0, INITIAL_VISIBLE)
+  const remainingCount = items.length - INITIAL_VISIBLE
+
+  return (
+    <div className="mb-3">
+      <div className="flex flex-col gap-2 items-start">
+        {visibleItems.map((item, index) => (
+          <span
+            key={index}
+            className="inline-flex text-xs px-3 py-1.5 bg-muted/50 text-muted-foreground rounded-full hover:bg-muted hover:text-foreground transition-all duration-200"
+          >
+            {item}
+          </span>
+        ))}
+      </div>
+      {hasMore && (
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="inline-flex items-center gap-1 mt-2 px-3 py-1 text-xs text-muted-foreground bg-muted/50 hover:bg-muted hover:text-foreground rounded-full transition-all duration-200"
+        >
+          {isExpanded ? (
+            <>
+              <ChevronUp className="w-3.5 h-3.5" />
+              Show less
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-3.5 h-3.5" />
+              Show {remainingCount} more
+            </>
+          )}
+        </button>
+      )}
+    </div>
+  )
+}
 
 export default function ExperiencePage() {
   const experiences = workExperience.filter(job => !job.isTemplate)
@@ -63,16 +107,9 @@ export default function ExperiencePage() {
                           {role.description}
                         </p>
 
-                        {/* Responsibilities - only renders if not null */}
+                        {/* Responsibilities - collapsible list */}
                         {role.responsibilities && (
-                          <ul className="text-sm text-muted-foreground space-y-1.5 mb-3">
-                            {role.responsibilities.map((item, index) => (
-                              <li key={index} className="flex items-start gap-2">
-                                <span className="text-primary mt-1 text-xs">•</span>
-                                <span className="leading-relaxed">{item}</span>
-                              </li>
-                            ))}
-                          </ul>
+                          <ResponsibilitiesList items={role.responsibilities} />
                         )}
 
                         <div className="flex flex-wrap gap-1.5">

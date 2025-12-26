@@ -4,6 +4,12 @@
  * This file contains the centralized work experience data for the portfolio.
  * It supports multiple roles per company for promotion tracking.
  *
+ * ## RESPONSIBILITIES DISPLAY
+ * Responsibilities are displayed as stacked rounded pill chips with:
+ * - Muted gray background with hover effect
+ * - Collapsible list (shows first 4 items, "Show X more" for the rest)
+ * - Keep each responsibility concise (aim for under 60 characters)
+ *
  * @example Adding a new company with single role:
  * ```typescript
  * {
@@ -18,7 +24,12 @@
  *       period: "Jan 2024 – Present",
  *       description: "Brief description of responsibilities",
  *       technologies: ["Tech1", "Tech2"],
- *       responsibilities: ["Task 1", "Task 2"]
+ *       responsibilities: [
+ *         "Designing and implementing CI/CD pipelines",
+ *         "Managing Kubernetes clusters",
+ *         "Automating infrastructure with Terraform",
+ *         "Mentoring junior engineers"
+ *       ]
  *     }
  *   ]
  * }
@@ -39,7 +50,11 @@
  *       period: "Jan 2024 – Present",
  *       description: "Current senior role description",
  *       technologies: ["React", "Node.js"],
- *       responsibilities: ["Lead development", "Mentor juniors"]
+ *       responsibilities: [
+ *         "Leading architecture decisions",
+ *         "Mentoring junior developers",
+ *         "Code review and quality assurance"
+ *       ]
  *     },
  *     // Previous role SECOND
  *     {
@@ -47,7 +62,11 @@
  *       period: "Jan 2023 – Dec 2023",
  *       description: "Previous junior role description",
  *       technologies: ["JavaScript", "HTML"],
- *       responsibilities: ["Develop features", "Fix bugs"]
+ *       responsibilities: [
+ *         "Developing new features",
+ *         "Bug fixes and maintenance",
+ *         "Writing unit tests"
+ *       ]
  *     }
  *   ]
  * }
@@ -58,6 +77,7 @@
  * 2. Update IDs sequentially (highest ID first)
  * 3. For promotions, add roles in reverse chronological order (newest first)
  * 4. Set isTemplate: true only for example/template entries
+ * 5. Keep responsibilities concise - they display as pill chips
  */
 
 /**
@@ -66,7 +86,7 @@
  * @property {string} period - Time period for this specific role (e.g., "Mar 2024 – Present")
  * @property {string} description - Brief description of the role's responsibilities
  * @property {string[]} technologies - Array of technologies/tools used in this role
- * @property {string[]|null} responsibilities - Array of specific responsibilities/tasks, or null if not detailed
+ * @property {string[]} responsibilities - Array of specific responsibilities/tasks (displayed as collapsible pill chips, first 4 shown by default)
  */
 
 /**
@@ -166,7 +186,15 @@ export const workExperience = [
         period: "Jun 2025 – Dec 2025",
         description: "Undergoing structured training in DevOps, cloud computing, and Linux administration.",
         technologies: ["Linux", "Kubernetes", "Terraform", "Ansible", "Docker", "Jenkins"],
-        responsibilities: null,
+        responsibilities: [
+          "Designing and implementing CI/CD pipelines with Jenkins and GitHub Actions",
+          "Managing Kubernetes clusters for container orchestration",
+          "Automating infrastructure provisioning using Terraform",
+          "Configuring and maintaining Linux servers",
+          "Implementing monitoring solutions with Prometheus and Grafana",
+          "Writing Ansible playbooks for configuration management",
+          "Containerizing applications with Docker",
+        ],
       },
     ],
   },
@@ -182,7 +210,13 @@ export const workExperience = [
         period: "Sep 2025 – Oct 2025",
         description: "Working on cloud automation, CI/CD pipelines, and infrastructure provisioning.",
         technologies: ["Docker", "CI/CD", "Cloud Automation", "API", "Cloud Deployment"],
-        responsibilities: null,
+        responsibilities: [
+          "Building and maintaining CI/CD pipelines for automated deployments",
+          "Containerizing applications using Docker",
+          "Automating cloud infrastructure provisioning",
+          "Integrating APIs for cloud service automation",
+          "Deploying and managing cloud-based applications",
+        ],
       },
     ],
   },
